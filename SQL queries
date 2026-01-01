@@ -1,0 +1,184 @@
+CREATE DATABASE IF NOT EXISTS cse370_project
+  DEFAULT CHARACTER SET utf8mb4
+  DEFAULT COLLATE utf8mb4_unicode_ci;
+
+  	USE cse370_project;
+
+CREATE TABLE Admin (
+  Admin_ID       INT AUTO_INCREMENT PRIMARY KEY,
+  Admin_Password VARCHAR(255) NOT NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE `User` (
+  User_ID          INT AUTO_INCREMENT PRIMARY KEY,
+  Name             VARCHAR(100) NOT NULL,
+  Contact_no       VARCHAR(20),
+  Email            VARCHAR(255) NOT NULL,
+  Password         VARCHAR(255) NOT NULL,
+  Bio              TEXT,
+  Admin_ID         INT NULL,
+  reason_of_report TEXT,
+
+  UNIQUE KEY uq_user_email (Email),
+  KEY idx_user_admin (Admin_ID),
+
+  CONSTRAINT fk_user_admin
+    FOREIGN KEY (Admin_ID) REFERENCES Admin(Admin_ID)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE Developer (
+  User_ID INT PRIMARY KEY,
+  CONSTRAINT fk_developer_user
+    FOREIGN KEY (User_ID) REFERENCES `User`(User_ID)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+
+CREATE TABLE Investor (
+  User_ID            INT PRIMARY KEY,
+  Investment_history TEXT,
+  Tier               VARCHAR(50),
+
+  CONSTRAINT fk_investor_user
+    FOREIGN KEY (User_ID) REFERENCES `User`(User_ID)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE User_interests (
+  User_ID  INT NOT NULL,
+  Interest VARCHAR(100) NOT NULL,
+
+  PRIMARY KEY (User_ID, Interest),
+
+  CONSTRAINT fk_user_interests_user
+    FOREIGN KEY (User_ID) REFERENCES `User`(User_ID)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE Project (
+  Project_ID             INT AUTO_INCREMENT PRIMARY KEY,
+  Project_title          VARCHAR(200) NOT NULL,
+  Category               VARCHAR(100),
+  Description            TEXT,
+  Amount_raised          DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+  Start_date             DATE,
+  End_date               DATE,
+  project_status         VARCHAR(50),
+
+  Admin_ID               INT NULL,
+  Developer_ID           INT NULL,
+
+  Portfolio_Developer_ID INT NULL,
+  Portfolio_repo_link    VARCHAR(255) NULL,
+
+  KEY idx_project_admin (Admin_ID),
+  KEY idx_project_dev (Developer_ID),
+  KEY idx_project_portfolio_dev (Portfolio_Developer_ID),
+
+  CONSTRAINT fk_project_admin
+    FOREIGN KEY (Admin_ID) REFERENCES Admin(Admin_ID)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE,
+
+  CONSTRAINT fk_project_developer
+    FOREIGN KEY (Developer_ID) REFERENCES Developer(User_ID)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE,
+
+  CONSTRAINT fk_project_portfolio_dev
+    FOREIGN KEY (Portfolio_Developer_ID) REFERENCES Developer(User_ID)
+    ON DELETE SET NULL
+    ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+
+CREATE TABLE Comments_on (
+  User_ID      INT NOT NULL,
+  Project_ID   INT NOT NULL,
+  comment_date DATE NOT NULL,
+  comment_time TIME NOT NULL,
+  comment      TEXT NOT NULL,
+
+  PRIMARY KEY (User_ID, Project_ID, comment_date, comment_time),
+
+  CONSTRAINT fk_comments_user
+    FOREIGN KEY (User_ID) REFERENCES `User`(User_ID)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+
+  CONSTRAINT fk_comments_project
+    FOREIGN KEY (Project_ID) REFERENCES Project(Project_ID)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+
+CREATE TABLE Reports (
+  Reporter_ID      INT NOT NULL,
+  Subject_ID       INT NOT NULL,
+  reason_of_report TEXT,
+
+  PRIMARY KEY (Reporter_ID, Subject_ID),
+
+  CONSTRAINT fk_reports_reporter
+    FOREIGN KEY (Reporter_ID) REFERENCES `User`(User_ID)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+
+  CONSTRAINT fk_reports_subject
+    FOREIGN KEY (Subject_ID) REFERENCES `User`(User_ID)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE makes (
+  Investor_ID   INT NOT NULL,
+  Project_ID    INT NOT NULL,
+  Investment_ID INT NOT NULL,
+
+  PRIMARY KEY (Investor_ID, Project_ID, Investment_ID),
+  UNIQUE KEY uq_makes_investment (Investment_ID),
+
+  CONSTRAINT fk_makes_investor
+    FOREIGN KEY (Investor_ID) REFERENCES Investor(User_ID)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+
+  CONSTRAINT fk_makes_project
+    FOREIGN KEY (Project_ID) REFERENCES Project(Project_ID)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+
+  CONSTRAINT fk_makes_investment
+    FOREIGN KEY (Investment_ID) REFERENCES Investment(Investment_ID)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
